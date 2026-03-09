@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рандомайзер - Выбор Победителя</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1a1b2f 0%, #2d1f3a 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Анимированный фон с частицами */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(76, 0, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 0, 200, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Шапка с эффектом стекла */
+        .top-bar {
+            background: rgba(20, 15, 35, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, #ffd93d, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .auth-buttons {
+            margin-left: auto;
+            display: flex;
+            gap: 16px;
+        }
+
+        .login-btn {
+            padding: 8px 22px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            background: transparent;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn:hover {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.1);
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .signup-btn {
+            padding: 8px 22px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .signup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(78, 205, 196, 0.5);
+        }
+
+        /* Главный контейнер */
+        .main-container {
+            max-width: 1300px;
+            margin: 40px auto;
+            padding: 0 32px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 32px;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Левая колонка - с эффектом стекла */
+        .draw-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 48px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .section-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Участники */
+        .participants-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .participants-header h3 {
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .participants-count {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 14px;
+            border-radius: 30px;
+            color: #4ecdc4;
+            font-weight: 600;
+            border: 1px solid rgba(78, 205, 196, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .participant-input {
+            flex: 1;
+            padding: 16px 22px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .participant-input:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 30px rgba(78, 205, 196, 0.2);
+        }
+
+        .participant-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .add-btn {
+            padding: 16px 36px;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+            white-space: nowrap;
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(78, 205, 196, 0.4);
+        }
+
+        .participants-list {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 32px;
+            padding: 24px;
+            min-height: 180px;
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .participants-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .participant-tag {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .participant-tag:hover {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        /* Настройки */
+        .settings-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 32px;
+            padding: 28px;
+            margin: 32px 0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .setting-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #4ecdc4;
+            cursor: pointer;
+        }
+
+        .setting-item label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .setting-item span {
+            margin-left: auto;
+            color: #4ecdc4;
+            font-size: 14px;
+            background: rgba(78, 205, 196, 0.1);
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+
+        /* Результат */
+        .result-section {
+            background: linear-gradient(145deg, rgba(255, 107, 107, 0.2), rgba(78, 205, 196, 0.2));
+            border-radius: 48px;
+            padding: 48px;
+            text-align: center;
+            margin: 32px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-section::before {
+            content: '🏆';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 120px;
+            opacity: 0.1;
+            transform: rotate(15deg);
+        }
+
+        .result-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .winner-display {
+            font-size: 72px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+            word-break: break-word;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            text-shadow: 0 0 30px rgba(78, 205, 196, 0.3);
+        }
+
+        .winner-display.placeholder {
+            font-size: 36px;
+            color: rgba(255, 255, 255, 0.2);
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Кнопка розыгрыша */
+        .draw-btn {
+            width: 100%;
+            padding: 24px;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            border-radius: 60px;
+            font-size: 24px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            box-shadow: 0 20px 40px -10px rgba(255, 107, 107, 0.5);
+            margin-bottom: 32px;
+            letter-spacing: 1px;
+        }
+
+        .draw-btn:hover:not(:disabled) {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 30px 50px -10px #4ecdc4;
+        }
+
+        .draw-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+
+        /* Импорт/Экспорт */
+        .import-export {
+            display: flex;
+            gap: 16px;
+        }
+
+        .ie-btn {
+            flex: 1;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .ie-btn:hover {
+            background: rgba(78, 205, 196, 0.1);
+            border-color: #4ecdc4;
+            transform: translateY(-2px);
+        }
+
+        /* Правая колонка */
+        .info-sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 48px;
+            padding: 40px;
+            height: fit-content;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stars {
+            color: #ffd93d;
+            font-size: 24px;
+            text-shadow: 0 0 20px rgba(255, 217, 61, 0.3);
+        }
+
+        .rating-number {
+            font-size: 32px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .rating-count {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 15px;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .feature-list li {
+            padding: 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            font-size: 16px;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list i {
+            color: #4ecdc4;
+            font-size: 20px;
+        }
+
+        .guarantee {
+            background: rgba(78, 205, 196, 0.1);
+            padding: 24px;
+            border-radius: 32px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px;
+            line-height: 1.7;
+            border: 1px solid rgba(78, 205, 196, 0.2);
+        }
+
+        .guarantee strong {
+            color: #4ecdc4;
+            font-size: 16px;
+        }
+
+        /* Скрытое модальное окно */
+        .cheat-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .cheat-modal-content {
+            background: rgba(30, 25, 45, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 48px;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.5);
+            transform: scale(1);
+            animation: modalAppear 0.3s ease;
+        }
+
+        @keyframes modalAppear {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .cheat-modal-content h3 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .cheat-modal-content p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 28px;
+            font-size: 15px;
+        }
+
+        .cheat-input {
+            width: 100%;
+            padding: 18px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+        }
+
+        .cheat-input:focus {
+            outline: none;
+            border-color: #4ecdc4;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .cheat-buttons {
+            display: flex;
+            gap: 16px;
+        }
+
+        .cheat-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .cheat-btn.set {
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            color: white;
+        }
+
+        .cheat-btn.set:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(78, 205, 196, 0.4);
+        }
+
+        .cheat-btn.cancel {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cheat-btn.cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Футер */
+        .footer {
+            max-width: 1300px;
+            margin: 60px auto 30px;
+            padding: 0 32px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Конфетти (canvas) */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Шапка -->
+    <div class="top-bar">
+        <div class="logo">
+            рандомайзер<span>.</span>
+        </div>
+        <div class="nav-links">
+            <a href="#">Генератор</a>
+            <a href="#">Колесо</a>
+            <a href="#">Список</a>
+            <a href="#">Тарифы</a>
+        </div>
+        <div class="auth-buttons">
+            <button class="login-btn">Войти</button>
+            <button class="signup-btn">Регистрация</button>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="main-container">
+        <!-- Левая колонка -->
+        <div class="draw-section">
+            <h1 class="section-title">Рандомайзер - Выбор Победителя</h1>
+            <div class="section-subtitle">
+                Быстро проведите жеребьевку с нашим генератором случайностей
+            </div>
+
+            <!-- Участники -->
+            <div class="participants-area">
+                <div class="participants-header">
+                    <h3>Участники розыгрыша</h3>
+                    <span class="participants-count" id="participantsCount">0</span>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="participantInput" class="participant-input" placeholder="Имя участника" maxlength="30">
+                    <button id="addButton" class="add-btn">Добавить</button>
+                </div>
+
+                <div class="participants-list">
+                    <div id="participantsContainer" class="participants-tags">
+                        <!-- Участники будут здесь -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Настройки -->
+            <div class="settings-section">
+                <div class="setting-item">
+                    <input type="checkbox" id="duplicateCheck" checked>
+                    <label for="duplicateCheck">Проверка на дубликаты</label>
+                    <span>✓ авто</span>
+                </div>
+                <div class="setting-item">
+                    <input type="checkbox" id="animateResult" checked>
+                    <label for="animateResult">Анимировать результат</label>
+                    <span>20 шагов</span>
+                </div>
+            </div>
+
+            <!-- Результат -->
+            <div class="result-section">
+                <div class="result-label">ПОБЕДИТЕЛЬ</div>
+                <div id="winnerDisplay" class="winner-display placeholder">———</div>
+            </div>
+
+            <!-- Кнопка розыгрыша -->
+            <button id="spinButton" class="draw-btn" disabled>
+                <span>🎲</span>
+                ЗАПУСТИТЬ РОЗЫГРЫШ
+                <span>🎲</span>
+            </button>
+
+            <!-- Импорт/Экспорт -->
+            <div class="import-export">
+                <button class="ie-btn" id="exportBtn">
+                    <span>📋</span> Экспорт
+                </button>
+                <button class="ie-btn" id="importBtn">
+                    <span>📂</span> Импорт
+                </button>
+            </div>
+        </div>
+
+        <!-- Правая колонка -->
+        <div class="info-sidebar">
+            <div class="rating">
+                <div class="stars">★★★★★</div>
+                <div class="rating-number">4.9</div>
+                <div class="rating-count">(105)</div>
+            </div>
+
+            <ul class="feature-list">
+                <li><i>✓</i> Проверка на дубликаты</li>
+                <li><i>✓</i> Импорт и экспорт данных</li>
+                <li><i>✓</i> Организуйте свою лотерею</li>
+                <li><i>✓</i> Анимация колеса фортуны</li>
+                <li><i>✓</i> Алгоритм случайности</li>
+            </ul>
+
+            <div class="guarantee">
+                <strong>🔒 Мы не оставляем ничего на волю случая!</strong><br><br>
+                Код выполняется на ВАШЕМ устройстве. Мы симулируем 10 миллионов жеребьёвок для проверки алгоритмов.
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрытое модальное окно (только для вас) -->
+    <div id="cheatModal" class="cheat-modal">
+        <div class="cheat-modal-content">
+            <h3>⚡ Скрытое управление</h3>
+            <p>Введите имя участника, который должен выиграть</p>
+            <input type="text" id="cheatWinnerInput" class="cheat-input" placeholder="Имя победителя" autocomplete="off">
+            <div class="cheat-buttons">
+                <button id="setCheatWinner" class="cheat-btn set">Установить</button>
+                <button id="cancelCheat" class="cheat-btn cancel">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Футер -->
+    <div class="footer">
+        © 2024 Рандомайзер - Выбор Победителя. Все права защищены.
+    </div>
+
+    <script>
+        class RandomDraw {
+            constructor() {
+                this.participants = [];
+                this.cheatWinner = null;
+                
+                // Элементы
+                this.participantInput = document.getElementById('participantInput');
+                this.addButton = document.getElementById('addButton');
+                this.participantsContainer = document.getElementById('participantsContainer');
+                this.participantsCount = document.getElementById('participantsCount');
+                this.winnerDisplay = document.getElementById('winnerDisplay');
+                this.spinButton = document.getElementById('spinButton');
+                this.exportBtn = document.getElementById('exportBtn');
+                this.importBtn = document.getElementById('importBtn');
+                this.duplicateCheck = document.getElementById('duplicateCheck');
+                this.animateResult = document.getElementById('animateResult');
+                
+                // Читерские элементы
+                this.cheatModal = document.getElementById('cheatModal');
+                this.cheatWinnerInput = document.getElementById('cheatWinnerInput');
+                this.setCheatWinner = document.getElementById('setCheatWinner');
+                this.cancelCheat = document.getElementById('cancelCheat');
+
+                // Конфетти
+                this.canvas = document.getElementById('confetti-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.confetti = [];
+                this.animationFrame = null;
+
+                this.initEventListeners();
+                this.updateUI();
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+
+            initEventListeners() {
+                // Добавление участника
+                this.addButton.addEventListener('click', () => this.addParticipant());
+                this.participantInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addParticipant();
+                });
+
+                // Запуск розыгрыша
+                this.spinButton.addEventListener('click', () => this.startDraw());
+
+                // Экспорт/Импорт
+                this.exportBtn.addEventListener('click', () => this.exportData());
+                this.importBtn.addEventListener('click', () => this.importData());
+
+                // Shift+P открывает читерское окно (без визуальной подсказки)
+                document.addEventListener('keydown', (e) => {
+                    if (e.shiftKey && (e.key === 'P' || e.key === 'p' || e.key === 'Р' || e.key === 'р')) {
+                        e.preventDefault();
+                        this.openCheatModal();
+                    }
+                });
+
+                // Читерское окно
+                this.setCheatWinner.addEventListener('click', () => this.setCheatWinnerFromInput());
+                this.cancelCheat.addEventListener('click', () => this.closeCheatModal());
+                
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.cheatModal.style.display === 'flex') {
+                        this.closeCheatModal();
+                    }
+                });
+
+                this.cheatModal.addEventListener('click', (e) => {
+                    if (e.target === this.cheatModal) {
+                        this.closeCheatModal();
+                    }
+                });
+
+                this.cheatWinnerInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.setCheatWinnerFromInput();
+                    }
+                });
+            }
+
+            openCheatModal() {
+                if (this.participants.length === 0) {
+                    alert('Сначала добавьте участников');
+                    return;
+                }
+                this.cheatModal.style.display = 'flex';
+                this.cheatWinnerInput.value = '';
+                setTimeout(() => this.cheatWinnerInput.focus(), 100);
+            }
+
+            closeCheatModal() {
+                this.cheatModal.style.display = 'none';
+                this.cheatWinnerInput.value = '';
+            }
+
+            setCheatWinnerFromInput() {
+                const winnerName = this.cheatWinnerInput.value.trim();
+                
+                if (!winnerName) {
+                    alert('Введите имя победителя');
+                    return;
+                }
+
+                if (!this.participants.includes(winnerName)) {
+                    alert('Такого участника нет в списке');
+                    return;
+                }
+
+                this.cheatWinner = winnerName;
+                this.closeCheatModal();
+                
+                // Только консоль знает
+                console.log('⚡ Читерский режим активирован для:', winnerName);
+            }
+
+            addParticipant() {
+                const name = this.participantInput.value.trim();
+                if (!name) return;
+
+                if (this.duplicateCheck.checked && this.participants.includes(name)) {
+                    alert('Такой участник уже есть!');
+                    return;
+                }
+
+                this.participants.push(name);
+                this.participantInput.value = '';
+                this.updateUI();
+            }
+
+            removeParticipant(index) {
+                if (this.cheatWinner === this.participants[index]) {
+                    this.cheatWinner = null;
+                }
+                this.participants.splice(index, 1);
+                this.updateUI();
+            }
+
+            startDraw() {
+                if (this.participants.length === 0) return;
+
+                // Если есть читерский победитель и включена анимация
+                if (this.cheatWinner && this.animateResult.checked) {
+                    this.animateWithCheat();
+                } 
+                // Если есть читерский победитель, но анимация выключена
+                else if (this.cheatWinner) {
+                    this.selectWinner(this.cheatWinner);
+                    this.cheatWinner = null;
+                    this.startConfetti();
+                }
+                // Обычный розыгрыш с анимацией
+                else if (this.animateResult.checked) {
+                    this.animateNormal();
+                }
+                // Обычный розыгрыш без анимации
+                else {
+                    const randomWinner = this.participants[Math.floor(Math.random() * this.participants.length)];
+                    this.selectWinner(randomWinner);
+                    this.startConfetti();
+                }
+            }
+
+            animateNormal() {
+                let spinCount = 0;
+                const maxSpins = 20;
+                const spinInterval = 100;
+
+                const interval = setInterval(() => {
+                    const randomIndex = Math.floor(Math.random() * this.participants.length);
+                    this.winnerDisplay.textContent = this.participants[randomIndex];
+                    this.winnerDisplay.classList.remove('placeholder');
+
+                    spinCount++;
+
+                    if (spinCount >= maxSpins) {
+                        clearInterval(interval);
+                        const finalWinner = this.participants[Math.floor(Math.random() * this.participants.length)];
+                        this.selectWinner(finalWinner);
+                        this.startConfetti();
+                    }
+                }, spinInterval);
+            }
+
+            animateWithCheat() {
+                let spinCount = 0;
+                const maxSpins = 20;
+                const spinInterval = 100;
+
+                const interval = setInterval(() => {
+                    const randomIndex = Math.floor(Math.random() * this.participants.length);
+                    this.winnerDisplay.textContent = this.participants[randomIndex];
+                    this.winnerDisplay.classList.remove('placeholder');
+
+                    spinCount++;
+
+                    // За 3 шага до конца начинаем подмешивать читерское имя
+                    if (spinCount >= maxSpins - 3 && Math.random() > 0.5) {
+                        this.winnerDisplay.textContent = this.cheatWinner;
+                    }
+
+                    if (spinCount >= maxSpins) {
+                        clearInterval(interval);
+                        this.selectWinner(this.cheatWinner);
+                        this.startConfetti();
+                        this.cheatWinner = null; // Сбрасываем после использования
+                    }
+                }, spinInterval);
+            }
+
+            selectWinner(winner) {
+                this.winnerDisplay.textContent = winner;
+                this.winnerDisplay.classList.remove('placeholder');
+                
+                // Эффект
+                this.winnerDisplay.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    this.winnerDisplay.style.transform = 'scale(1)';
+                }, 200);
+            }
+
+            // Конфетти
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            startConfetti() {
+                this.confetti = [];
+                for (let i = 0; i < 150; i++) {
+                    this.confetti.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height - this.canvas.height,
+                        size: Math.random() * 8 + 4,
+                        speed: Math.random() * 3 + 2,
+                        color: `hsl(${Math.random() * 360}, 80%, 60%)`,
+                        rotation: Math.random() * 360
+                    });
+                }
+                
+                if (this.animationFrame) {
+                    cancelAnimationFrame(this.animationFrame);
+                }
+                this.animateConfetti();
+            }
+
+            animateConfetti() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                let stillFalling = false;
+                
+                for (let i = 0; i < this.confetti.length; i++) {
+                    const c = this.confetti[i];
+                    
+                    this.ctx.save();
+                    this.ctx.translate(c.x, c.y);
+                    this.ctx.rotate((c.rotation * Math.PI) / 180);
+                    this.ctx.fillStyle = c.color;
+                    this.ctx.fillRect(-c.size / 2, -c.size / 2, c.size, c.size);
+                    this.ctx.restore();
+                    
+                    c.y += c.speed;
+                    c.rotation += 1;
+                    
+                    if (c.y < this.canvas.height + c.size) {
+                        stillFalling = true;
+                    }
+                }
+                
+                if (stillFalling) {
+                    this.animationFrame = requestAnimationFrame(() => this.animateConfetti());
+                }
+            }
+
+            exportData() {
+                const data = JSON.stringify(this.participants, null, 2);
+                navigator.clipboard.writeText(data).then(() => {
+                    alert('Список участников скопирован в буфер обмена');
+                });
+            }
+
+            importData() {
+                const data = prompt('Введите список участников в формате JSON (например: ["Анна", "Иван", "Мария"])');
+                if (!data) return;
+                
+                try {
+                    const imported = JSON.parse(data);
+                    if (Array.isArray(imported)) {
+                        this.participants = imported;
+                        this.cheatWinner = null;
+                        this.updateUI();
+                    } else {
+                        alert('Неверный формат данных');
+                    }
+                } catch {
+                    alert('Ошибка парсинга JSON');
+                }
+            }
+
+            updateUI() {
+                // Обновление списка
+                this.participantsContainer.innerHTML = '';
+                this.participants.forEach((participant, index) => {
+                    const tag = document.createElement('div');
+                    tag.className = 'participant-tag';
+                    tag.innerHTML = `
+                        <span>${participant}</span>
+                        <button class="remove-btn" data-index="${index}">✕</button>
+                    `;
+
+                    tag.querySelector('.remove-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.removeParticipant(index);
+                    });
+
+                    this.participantsContainer.appendChild(tag);
+                });
+
+                // Счетчик
+                this.participantsCount.textContent = this.participants.length;
+
+                // Кнопка
+                this.spinButton.disabled = this.participants.length === 0;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new RandomDraw();
+        });
+    </script>
+</body>
+</html>
